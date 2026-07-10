@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
-
 import '../models/worker.dart';
+import '../services/provider_service.dart';
 
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
@@ -14,6 +14,7 @@ class MapScreen extends StatefulWidget {
 
 class _MapScreenState extends State<MapScreen> {
   final MapController _mapController = MapController();
+  final ProviderService _providerService = ProviderService();
   LatLng? _userLocation;
   List<Worker> _workers = [];
   String _status = 'Obteniendo ubicación...';
@@ -46,44 +47,31 @@ class _MapScreenState extends State<MapScreen> {
         ),
       );
       final userLatLng = LatLng(position.latitude, position.longitude);
-      setState(() {
-        _userLocation = userLatLng;
-        _workers = _sampleWorkersAround(userLatLng);
-      });
-      _mapController.move(userLatLng, 15);
+      setState(() => _userLocation = userLatLng);
+      await _loadNearby(userLatLng);
     } catch (e) {
+      print('>>> ERROR: $e');
       setState(() => _status = 'No se pudo obtener la ubicación: $e');
     }
   }
 
   // Datos de ejemplo alrededor del usuario. Se reemplazará por el backend.
-  List<Worker> _sampleWorkersAround(LatLng c) {
-    return [
-      Worker(
-        name: 'María Restrepo',
-        trade: 'Costurera',
-        description: 'Arreglos de ropa y confección a medida.',
-        location: LatLng(c.latitude + 0.004, c.longitude + 0.003),
-      ),
-      Worker(
-        name: 'Carlos Gómez',
-        trade: 'Electricista',
-        description: 'Instalaciones y reparaciones eléctricas.',
-        location: LatLng(c.latitude - 0.003, c.longitude + 0.005),
-      ),
-      Worker(
-        name: 'Taller El Buen Corte',
-        trade: 'Carpintería',
-        description: 'Muebles a medida y reparaciones en madera.',
-        location: LatLng(c.latitude + 0.002, c.longitude - 0.004),
-      ),
-      Worker(
-        name: 'Ana Valencia',
-        trade: 'Peluquería',
-        description: 'Corte y peinado a domicilio.',
-        location: LatLng(c.latitude - 0.005, c.longitude - 0.002),
-      ),
-    ];
+Future<void> _loadNearby(LatLng center) async {
+    try {
+      final workers = await _providerService.fetchNearby(
+        lat: center.latitude,
+        lng: center.longitude,
+        radiusM: 5000,
+      );
+      setState(() => _workers = workers);
+      if (workers.isEmpty) {
+        setState(() => _status = 'No hay proveedores cerca todavía.');
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('No se pudieron cargar los proveedores: $e')),
+      );
+    }
   }
 
   void _showWorkerSheet(Worker worker) {

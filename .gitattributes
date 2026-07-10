@@ -1,0 +1,16 @@
+# Normaliza a LF en el repositorio; cada quien trabaja con lo suyo localmente
+* text=auto eol=lf
+
+# Archivos específicos de Windows que sí deben conservar CRLF
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+# Binarios: que Git no los toque
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.jar binary
+*.keystore binary
