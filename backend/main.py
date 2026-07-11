@@ -18,8 +18,14 @@ class Provider(BaseModel):
     description: str
     lat: float
     lng: float
-    distance_m: float
+    distance_m: float | None = None
 
+class ProviderCreate(BaseModel):
+    name: str
+    trade: str
+    description: str
+    lat: float
+    lng: float
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -66,3 +72,20 @@ async def providers_nearby(
     async with request.app.state.pool.acquire() as conn:
         rows = await conn.fetch(query, lng, lat, radius_m, limit)
     return [dict(r) for r in rows]
+
+@app.post("/providers", response_model=Provider, status_code=201)
+async def create_provider(payload: ProviderCreate, request: Request):
+    query = """
+        INSERT INTO providers (name, trade, description, location)
+        VALUES ($1, $2, $3, ST_MakePoint($4, $5)::geography)
+        RETURNING id, name, trade, description,
+                  ST_Y(location::geometry) AS lat,
+                  ST_X(location::geometry) AS lng;
+    """
+    async with request.app.state.pool.acquire() as conn:
+        row = await conn.fetchrow(
+            query,
+            payload.name, payload.trade, payload.description,
+            payload.lng, payload.lat,  # OJO: lng, lat (orden de PostGIS)
+        )
+    return dict(row)

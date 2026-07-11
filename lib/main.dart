@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'screens/map_screen.dart';
+import 'theme/app_theme.dart';
+import 'constants.dart';
+import 'screens/splash_screen.dart';
 
-void main() {
-  runApp(const MyApp());
-}
+void main() => runApp(const MyApp());
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -11,9 +11,10 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Oficios Cerca',
-      theme: ThemeData(colorSchemeSeed: Colors.teal, useMaterial3: true),
-      home: const MapScreen(),
+      title: AppInfo.name,
+      debugShowCheckedModeBanner: false,
+      theme: AppTheme.light,
+      home: const SplashScreen(),
     );
   }
 }
