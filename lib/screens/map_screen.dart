@@ -116,7 +116,16 @@ Future<void> _loadNearby(LatLng center) async {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Oficios cerca de ti')),
+      appBar: AppBar(
+        title: const Text('Oficios cerca de ti'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed:
+                _userLocation == null ? null : () => _loadNearby(_userLocation!),
+          ),
+        ],
+      ),
       body: _userLocation == null
           ? Center(child: Text(_status))
           : FlutterMap(

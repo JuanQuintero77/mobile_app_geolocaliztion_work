@@ -26,4 +26,28 @@ class ProviderService {
         .map((e) => Worker.fromJson(e as Map<String, dynamic>))
         .toList();
   }
+
+  Future<void> createProvider({
+    required String name,
+    required String trade,
+    required String description,
+    required double lat,
+    required double lng,
+  }) async {
+    final uri = Uri.parse('${ApiConfig.baseUrl}/providers');
+    final response = await http.post(
+      uri,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'name': name,
+        'trade': trade,
+        'description': description,
+        'lat': lat,
+        'lng': lng,
+      }),
+    );
+    if (response.statusCode != 201) {
+      throw Exception('Error ${response.statusCode}: ${response.body}');
+    }
+  }
 }
